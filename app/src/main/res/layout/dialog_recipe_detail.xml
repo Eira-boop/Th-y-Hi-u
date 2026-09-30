@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/surface"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/dialogTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/primary_dark"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            tools:text="Canh Cà Chua Trứng" />
+
+        <TextView
+            android:id="@+id/dialogMeta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp"
+            tools:text="Món Canh • 15 phút • Độ khó: Dễ • 180 kcal" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="12dp"
+            android:background="@color/divider" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Nguyên liệu cần chuẩn bị:"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/dialogIngredients"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:lineSpacingExtra="4dp"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            tools:text="- 2 quả cà chua chín đỏ\n- 2 quả trứng gà\n- Hành lá, ngò rí\n- Hạt nêm, nước mắm, tiêu" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="12dp"
+            android:background="@color/divider" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Các bước thực hiện:"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/dialogInstructions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:lineSpacingExtra="4dp"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            tools:text="1. Cà chua rửa sạch, cắt múi cau. Trứng gà đánh tan trong chén cùng chút hạt nêm.\n2. Phi thơm hành tím với 1 muỗng dầu ăn, cho cà chua vào xào mềm tạo màu đỏ đẹp.\n3. Đổ 600ml nước vào đun sôi, nêm gia vị vừa ăn.\n4. Hạ nhỏ lửa, khuấy đều nước canh theo vòng tròn rồi từ từ rót trứng vào để tạo vân hoa trứng.\n5. Tắt bếp, rắc hành lá và tiêu lên trên. Dùng nóng rất ngon." />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/dialogButtonClose"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:backgroundTint="@color/primary"
+            android:text="Đóng"
+            android:textColor="@color/on_primary"
+            app:cornerRadius="12dp" />
+
+    </LinearLayout>
+
+</ScrollView>

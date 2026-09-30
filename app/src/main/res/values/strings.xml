@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">SmartCook - Gợi Ý Món Ăn</string>
+    <string name="nav_scan">Quét ảnh</string>
+    <string name="nav_history">Lịch sử</string>
+    <string name="nav_recipes">Món gợi ý</string>
+    <string name="nav_settings">Cài đặt</string>
+    
+    <string name="camera_hint">Hướng camera vào nguyên liệu (rau, củ, thịt, trứng...) và chụp</string>
+    <string name="capture_btn">Chụp ảnh</string>
+    <string name="multi_mode_off">Nhiều nguyên liệu: TẮT</string>
+    <string name="multi_mode_on">Nhiều nguyên liệu: BẬT</string>
+    <string name="touch_hint">Chạm vào ảnh để chụp tiếp</string>
+    <string name="multi_touch_hint">Chạm vào từng ô vuông để xem món ăn gợi ý</string>
+    <string name="no_items_detected">Không phát hiện được nguyên liệu — vui lòng để các món cách xa nhau một chút</string>
+    <string name="history_title">Lịch Sử Quét Nguyên Liệu</string>
+    <string name="swipe_to_delete_hint">Vuốt sang trái hoặc phải để xoá mục lịch sử</string>
+    <string name="empty_history">Chưa có lịch sử quét nào</string>
+    <string name="confidence_format">Độ tin cậy: %.0f%%</string>
+    <string name="permission_required">Ứng dụng cần quyền Camera để chụp và nhận diện nguyên liệu.</string>
+</resources>

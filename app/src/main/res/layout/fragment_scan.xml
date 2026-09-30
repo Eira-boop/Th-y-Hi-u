@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    tools:context=".ui.scan.ScanFragment">
+
+    <!-- Camera Preview View (CameraX) -->
+    <androidx.camera.view.PreviewView
+        android:id="@+id/previewView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Top Guidance Banner -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:background="#D01B5E20"
+        android:gravity="center"
+        android:padding="12dp"
+        android:text="@string/camera_hint"
+        android:textColor="@color/on_primary"
+        android:textSize="13sp" />
+
+    <!-- Bottom Controls: Single / Multi Mode and Capture -->
+    <LinearLayout
+        android:id="@+id/controlsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="32dp"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonCapture"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:backgroundTint="@color/primary"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:text="@string/capture_btn"
+            android:textColor="@color/on_primary"
+            app:cornerRadius="24dp"
+            app:icon="@android:drawable/ic_menu_camera" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonMultiMode"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:backgroundTint="#80000000"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:text="@string/multi_mode_off"
+            android:textColor="@color/white"
+            app:cornerRadius="24dp"
+            app:strokeColor="@color/white" />
+    </LinearLayout>
+
+    <!-- Post-capture Image Result Display -->
+    <ImageView
+        android:id="@+id/imageResult"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/black"
+        android:scaleType="fitCenter"
+        android:visibility="gone" />
+
+    <!-- Multiple Items Hint Banner -->
+    <TextView
+        android:id="@+id/textMultiHint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:background="#D0E65100"
+        android:gravity="center"
+        android:padding="12dp"
+        android:text="@string/multi_touch_hint"
+        android:textColor="@color/white"
+        android:textSize="13sp"
+        android:visibility="gone" />
+
+    <!-- Result Information Overlay -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/resultInfoPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/surface"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:visibility="gone">
+
+            <View
+                android:id="@+id/colorBadge"
+                android:layout_width="60dp"
+                android:layout_height="6dp"
+                android:layout_marginBottom="8dp"
+                android:background="@color/primary" />
+
+            <TextView
+                android:id="@+id/textLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_primary"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                tools:text="Cà chua (Tomato)" />
+
+            <TextView
+                android:id="@+id/textConfidence"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp"
+                tools:text="Độ tin cậy: 95%" />
+
+            <TextView
+                android:id="@+id/textGuide"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                tools:text="Gợi ý món ăn: Cà chua xào trứng, Đậu sốt cà chua, Canh chua cá lóc..." />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonViewRecipes"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Xem Công Thức Chi Tiết"
+                android:textColor="@color/primary_dark"
+                app:cornerRadius="12dp" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/textCloseHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:background="@color/primary_dark"
+            android:gravity="center"
+            android:padding="12dp"
+            android:text="@string/touch_hint"
+            android:textColor="@color/on_primary"
+            android:textSize="13sp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+</FrameLayout>
