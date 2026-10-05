@@ -22,6 +22,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.camera.core.CameraSelector;
@@ -86,6 +91,7 @@ public class ScanFragment extends Fragment {
     private TextView textConfidence;
     private TextView textGuide;
     private TextView textCloseHint;
+    private TextView textCameraHint;
     private MaterialButton buttonViewRecipes;
 
     private ImageCapture imageCapture;
@@ -103,6 +109,24 @@ public class ScanFragment extends Fragment {
     private String currentDetectedIngredient = "";
 
     private ExecutorService executorService;
+
+    private final ActivityResultLauncher<String> cameraPermissionLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.RequestPermission(),
+                    isGranted -> {
+                        if (isGranted) {
+                            startCamera();
+                        } else {
+                            if (isAdded()) {
+                                Toast.makeText(
+                                        requireContext(),
+                                        R.string.permission_required,
+                                        Toast.LENGTH_LONG
+                                ).show();
+                            }
+                        }
+                    }
+            );
 
     @Nullable
     @Override
@@ -123,11 +147,42 @@ public class ScanFragment extends Fragment {
 
         initMachineLearning();
 
-        startCamera();
+        checkCameraPermissionAndStart();
 
         setupListeners();
 
         return root;
+    }
+
+    /**
+     * Kiểm tra quyền Camera trước khi khởi động CameraX.
+     */
+    private void checkCameraPermissionAndStart() {
+        if (!isAdded()) {
+            return;
+        }
+
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED) {
+            startCamera();
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (isAdded() && ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED) {
+            if (imageCapture == null) {
+                startCamera();
+            }
+        }
     }
 
     /**
@@ -149,6 +204,9 @@ public class ScanFragment extends Fragment {
 
         textMultiHint =
                 root.findViewById(R.id.textMultiHint);
+
+        textCameraHint =
+                root.findViewById(R.id.textCameraHint);
 
         resultInfoPanel =
                 root.findViewById(R.id.resultInfoPanel);
@@ -274,6 +332,11 @@ public class ScanFragment extends Fragment {
                         )
                 );
 
+                if (textCameraHint != null) {
+                    textCameraHint.setText("⚡ Chế độ nhiều nguyên liệu đang BẬT: Hướng camera và bấm 'Chụp ảnh'");
+                    textCameraHint.setBackgroundColor(Color.parseColor("#D0E65100"));
+                }
+
                 /*
                  * Chỉ khởi tạo ObjectDetector khi
                  * người dùng thực sự bật Multi Mode.
@@ -292,6 +355,19 @@ public class ScanFragment extends Fragment {
                                 R.color.black
                         )
                 );
+
+                if (textCameraHint != null) {
+                    textCameraHint.setText(R.string.camera_hint);
+                    textCameraHint.setBackgroundColor(Color.parseColor("#D01B5E20"));
+                }
+
+                if (isAdded()) {
+                    Toast.makeText(
+                            requireContext(),
+                            "Đã chuyển về chế độ quét 1 nguyên liệu.",
+                            Toast.LENGTH_SHORT
+                    ).show();
+                }
             }
         });
 
@@ -382,25 +458,15 @@ public class ScanFragment extends Fragment {
             );
 
             /*
-             * Nếu model không khả dụng,
-             * vẫn cho phép chạy bằng demo.
+             * Thông báo hướng dẫn người dùng bấm nút chụp ảnh.
              */
-            if (!detector.isModelAvailable()) {
+            if (isAdded()) {
 
-                Log.w(
-                        TAG,
-                        "Model ObjectDetector không khả dụng. " +
-                                "Multi Mode sẽ sử dụng bounding box demo."
-                );
-
-                if (isAdded()) {
-
-                    Toast.makeText(
-                            requireContext(),
-                            "Model nhận diện nhiều vật thể chưa hợp lệ. Đang sử dụng chế độ demo.",
-                            Toast.LENGTH_LONG
-                    ).show();
-                }
+                Toast.makeText(
+                        requireContext(),
+                        "Đã BẬT chế độ nhiều nguyên liệu! Hãy bấm nút 'Chụp ảnh' để nhận diện các món.",
+                        Toast.LENGTH_LONG
+                ).show();
             }
 
         } catch (IOException e) {
@@ -428,6 +494,10 @@ public class ScanFragment extends Fragment {
      * Khởi động CameraX.
      */
     private void startCamera() {
+
+        if (!isAdded()) {
+            return;
+        }
 
         ListenableFuture<ProcessCameraProvider> future =
                 ProcessCameraProvider.getInstance(
@@ -460,22 +530,37 @@ public class ScanFragment extends Fragment {
 
                         cameraProvider.unbindAll();
 
+                        CameraSelector cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
+                        try {
+                            if (!cameraProvider.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA)
+                                    && cameraProvider.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA)) {
+                                cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA;
+                            }
+                        } catch (Exception ignored) {
+                        }
+
                         cameraProvider.bindToLifecycle(
-                                this,
-                                CameraSelector.DEFAULT_BACK_CAMERA,
+                                getViewLifecycleOwner(),
+                                cameraSelector,
                                 preview,
                                 imageCapture
                         );
 
-                    } catch (
-                            ExecutionException
-                            | InterruptedException e) {
+                    } catch (Exception e) {
 
                         Log.e(
                                 TAG,
-                                "Lỗi kết nối camera.",
+                                "Lỗi kết nối camera: " + e.getMessage(),
                                 e
                         );
+
+                        if (isAdded()) {
+                            Toast.makeText(
+                                    requireContext(),
+                                    "Lỗi kết nối camera: " + e.getMessage(),
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
                     }
                 },
                 ContextCompat.getMainExecutor(
@@ -489,6 +574,14 @@ public class ScanFragment extends Fragment {
      */
     private void takePhoto() {
 
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.CAMERA
+        ) != PackageManager.PERMISSION_GRANTED) {
+            checkCameraPermissionAndStart();
+            return;
+        }
+
         if (imageCapture == null) {
 
             Toast.makeText(
@@ -500,22 +593,19 @@ public class ScanFragment extends Fragment {
             return;
         }
 
-        File picturesDir =
-                new File(
-                        Environment
-                                .getExternalStoragePublicDirectory(
-                                        Environment.DIRECTORY_PICTURES
-                                ),
-                        "SmartCook"
-                );
+        File picturesDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        if (picturesDir == null) {
+            picturesDir = requireContext().getFilesDir();
+        }
 
-        if (!picturesDir.exists()) {
-            picturesDir.mkdirs();
+        File smartCookDir = new File(picturesDir, "SmartCook");
+        if (!smartCookDir.exists()) {
+            smartCookDir.mkdirs();
         }
 
         File photoFile =
                 new File(
-                        picturesDir,
+                        smartCookDir,
                         "scan_"
                                 + System.currentTimeMillis()
                                 + ".jpg"
@@ -1358,6 +1448,16 @@ public class ScanFragment extends Fragment {
                 View.VISIBLE
         );
 
+        if (textCameraHint != null) {
+            if (multiMode) {
+                textCameraHint.setText("⚡ Chế độ nhiều nguyên liệu đang BẬT: Hướng camera và bấm 'Chụp ảnh'");
+                textCameraHint.setBackgroundColor(Color.parseColor("#D0E65100"));
+            } else {
+                textCameraHint.setText(R.string.camera_hint);
+                textCameraHint.setBackgroundColor(Color.parseColor("#D01B5E20"));
+            }
+        }
+
         currentDetectedIngredient =
                 "";
     }
@@ -1419,6 +1519,8 @@ public class ScanFragment extends Fragment {
 
         multiDetections =
                 Collections.emptyList();
+
+        imageCapture = null;
 
         super.onDestroyView();
     }

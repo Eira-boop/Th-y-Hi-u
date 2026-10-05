@@ -1,17 +1,23 @@
 
 package vn.edu.mku.foodsuggest.ui;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import vn.edu.mku.foodsuggest.R;
 
 /**
  * Màn hình chào (SplashActivity)
+ * Khởi động đầu tiên để xin cấp quyền Camera
  */
 public class SplashActivity extends AppCompatActivity {
 
@@ -20,6 +26,14 @@ public class SplashActivity extends AppCompatActivity {
 
     private Handler handler;
     private Runnable startMainRunnable;
+
+    private final ActivityResultLauncher<String> permissionLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.RequestPermission(),
+                    isGranted -> {
+                        startMain();
+                    }
+            );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,7 +49,13 @@ public class SplashActivity extends AppCompatActivity {
             }
         };
 
-        handler.postDelayed(startMainRunnable, SPLASH_DELAY);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED) {
+            handler.postDelayed(startMainRunnable, SPLASH_DELAY);
+        } else {
+            // Xin cấp quyền Camera ngay tại màn hình khởi động
+            permissionLauncher.launch(Manifest.permission.CAMERA);
+        }
     }
 
     private void startMain() {
