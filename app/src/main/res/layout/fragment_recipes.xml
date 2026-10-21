@@ -8,23 +8,56 @@
     android:orientation="vertical"
     tools:context=".ui.recipes.RecipesFragment">
 
-    <TextView
+    <!-- Header -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:text="Gợi Ý Món Ăn Thông Minh"
-        android:textColor="@color/text_primary"
-        android:textSize="20sp"
-        android:textStyle="bold" />
+        android:background="@color/surface"
+        android:elevation="2dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_nav_recipes"
+            app:tint="@color/primary" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Danh Sách Món Ăn"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Kho công thức gia đình chuẩn vị &amp; bổ dưỡng"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
 
     <!-- Search input -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
+        android:layout_marginTop="12dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="8dp"
-        app:cardCornerRadius="12dp"
+        app:cardCornerRadius="14dp"
         app:cardElevation="2dp">
 
         <EditText
@@ -34,13 +67,67 @@
             android:background="@android:color/transparent"
             android:drawableStart="@android:drawable/ic_menu_search"
             android:drawablePadding="12dp"
-            android:hint="Tìm món ăn hoặc nguyên liệu..."
+            android:hint="Tìm kiếm món ăn, nguyên liệu..."
             android:imeOptions="actionSearch"
             android:inputType="text"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
             android:textSize="14sp" />
     </androidx.cardview.widget.CardView>
+
+    <!-- Category filter chips -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp"
+        android:clipToPadding="false"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:scrollbars="none">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupCategories"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:singleSelection="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipAll"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="Tất cả" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipSoup"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Món Canh" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipStirFry"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Món Xào" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipMain"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Món Mặn" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipVeg"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Món Chay" />
+        </com.google.android.material.chip.ChipGroup>
+    </HorizontalScrollView>
 
     <!-- Info banner -->
     <TextView
@@ -50,10 +137,10 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="8dp"
-        android:background="@color/secondary_light"
+        android:background="@drawable/bg_action_recipes"
         android:padding="8dp"
         android:text="Hiển thị món ăn gợi ý từ các nguyên liệu bạn có"
-        android:textColor="@color/secondary_dark"
+        android:textColor="@color/info"
         android:textSize="12sp" />
 
     <androidx.recyclerview.widget.RecyclerView

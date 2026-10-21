@@ -1,10 +1,12 @@
 <resources>
     <string name="app_name">SmartCook - Gợi Ý Món Ăn</string>
-    <string name="nav_scan">Quét ảnh</string>
-    <string name="nav_history">Lịch sử</string>
-    <string name="nav_recipes">Món gợi ý</string>
+    <string name="nav_home">Trang chủ</string>
+    <string name="nav_scan">Chụp ảnh</string>
+    <string name="nav_recipes">Danh sách</string>
+    <string name="nav_ai">Phần AI</string>
     <string name="nav_settings">Cài đặt</string>
-    
+    <string name="nav_history">Lịch sử</string>
+
     <string name="camera_hint">Hướng camera vào nguyên liệu (rau, củ, thịt, trứng...) và chụp</string>
     <string name="capture_btn">Chụp ảnh</string>
     <string name="multi_mode_off">Nhiều nguyên liệu: TẮT</string>

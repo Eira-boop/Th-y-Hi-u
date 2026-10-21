@@ -128,6 +128,17 @@
                 android:padding="16dp">
 
                 <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonViewHistory"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="Xem lịch sử quét nguyên liệu"
+                    android:textColor="@color/primary_dark"
+                    app:icon="@android:drawable/ic_menu_recent_history"
+                    app:iconTint="@color/primary_dark" />
+
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/buttonClearHistory"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"

@@ -20,9 +20,10 @@
         android:layout_height="wrap_content"
         android:background="@color/surface"
         app:elevation="8dp"
-        app:itemIconTint="@color/primary"
-        app:itemTextColor="@color/primary"
-        app:menu="@menu/bottom_nav_menu"
-        tools:ignore="MissingConstraints" />
+        app:itemIconTint="@color/nav_item_color"
+        app:itemTextColor="@color/nav_item_color"
+        app:itemActiveIndicatorStyle="@null"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/bottom_nav_menu" />
 
 </LinearLayout>

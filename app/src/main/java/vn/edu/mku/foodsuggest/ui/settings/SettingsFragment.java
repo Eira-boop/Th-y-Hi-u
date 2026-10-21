@@ -22,6 +22,8 @@ import java.util.concurrent.Executors;
 
 import vn.edu.mku.foodsuggest.R;
 import vn.edu.mku.foodsuggest.data.AppDatabase;
+import vn.edu.mku.foodsuggest.ui.MainActivity;
+import vn.edu.mku.foodsuggest.ui.history.HistoryFragment;
 
 /**
  * Fragment cài đặt: cấu hình ngưỡng tin cậy AI, chế độ ăn và quản lý dữ liệu (Chương 1.2.4 & 4.2.4)
@@ -37,6 +39,7 @@ public class SettingsFragment extends Fragment {
     private SeekBar seekBarThreshold;
     private MaterialSwitch switchVegetarian;
     private MaterialSwitch switchAutoSave;
+    private MaterialButton buttonViewHistory;
     private MaterialButton buttonClearHistory;
 
     private SharedPreferences prefs;
@@ -61,6 +64,7 @@ public class SettingsFragment extends Fragment {
         seekBarThreshold = root.findViewById(R.id.seekBarThreshold);
         switchVegetarian = root.findViewById(R.id.switchVegetarian);
         switchAutoSave = root.findViewById(R.id.switchAutoSave);
+        buttonViewHistory = root.findViewById(R.id.buttonViewHistory);
         buttonClearHistory = root.findViewById(R.id.buttonClearHistory);
     }
 
@@ -99,6 +103,14 @@ public class SettingsFragment extends Fragment {
         switchAutoSave.setOnCheckedChangeListener((buttonView, isChecked) -> {
             prefs.edit().putBoolean(KEY_AUTOSAVE, isChecked).apply();
         });
+
+        if (buttonViewHistory != null) {
+            buttonViewHistory.setOnClickListener(v -> {
+                if (getActivity() instanceof MainActivity) {
+                    ((MainActivity) getActivity()).replaceFragment(new HistoryFragment());
+                }
+            });
+        }
 
         buttonClearHistory.setOnClickListener(v -> {
             new AlertDialog.Builder(requireContext())

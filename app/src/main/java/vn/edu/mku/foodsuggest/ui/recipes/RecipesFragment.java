@@ -15,6 +15,9 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -24,7 +27,7 @@ import vn.edu.mku.foodsuggest.data.AppDatabase;
 import vn.edu.mku.foodsuggest.data.Recipe;
 
 /**
- * Fragment hiển thị kho công thức và đề xuất món ăn thông minh dựa trên nguyên liệu
+ * Fragment hiển thị kho danh sách công thức và lọc theo danh mục / nguyên liệu
  */
 public class RecipesFragment extends Fragment {
 
@@ -33,11 +36,13 @@ public class RecipesFragment extends Fragment {
     private EditText editSearchRecipe;
     private TextView textCurrentIngredientFilter;
     private RecyclerView recyclerRecipes;
+    private ChipGroup chipGroupCategories;
 
     private RecipeRvAdapter adapter;
     private final List<Recipe> allRecipesList = new ArrayList<>();
     private final List<Recipe> displayedRecipesList = new ArrayList<>();
     private String initialFilter = "";
+    private String selectedCategory = "Tất cả";
 
     public static RecipesFragment newInstance(String ingredientFilter) {
         RecipesFragment fragment = new RecipesFragment();
@@ -64,6 +69,7 @@ public class RecipesFragment extends Fragment {
         findViews(root);
         setupRecyclerView();
         setupSearch();
+        setupCategoryChips();
         loadRecipes();
 
         return root;
@@ -73,6 +79,7 @@ public class RecipesFragment extends Fragment {
         editSearchRecipe = root.findViewById(R.id.editSearchRecipe);
         textCurrentIngredientFilter = root.findViewById(R.id.textCurrentIngredientFilter);
         recyclerRecipes = root.findViewById(R.id.recyclerRecipes);
+        chipGroupCategories = root.findViewById(R.id.chipGroupCategories);
     }
 
     private void setupRecyclerView() {
@@ -106,6 +113,25 @@ public class RecipesFragment extends Fragment {
         });
     }
 
+    private void setupCategoryChips() {
+        if (chipGroupCategories != null) {
+            chipGroupCategories.setOnCheckedStateChangeListener((group, checkedIds) -> {
+                if (checkedIds.isEmpty()) {
+                    selectedCategory = "Tất cả";
+                } else {
+                    int checkedId = checkedIds.get(0);
+                    Chip chip = group.findViewById(checkedId);
+                    if (chip != null) {
+                        selectedCategory = chip.getText().toString();
+                    } else {
+                        selectedCategory = "Tất cả";
+                    }
+                }
+                filterRecipes(editSearchRecipe.getText().toString());
+            });
+        }
+    }
+
     private void filterRecipes(String query) {
         displayedRecipesList.clear();
         String q = query.trim().toLowerCase();
@@ -120,13 +146,17 @@ public class RecipesFragment extends Fragment {
                     || r.requiredIngredients.toLowerCase().contains(initialFilter.toLowerCase())
                     || r.title.toLowerCase().contains(initialFilter.toLowerCase());
 
-            if (matchesQuery && (q.length() > 0 || matchesInitial)) {
+            boolean matchesCategory = selectedCategory.equals("Tất cả")
+                    || r.category.toLowerCase().contains(selectedCategory.toLowerCase())
+                    || (selectedCategory.equals("Món Mặn") && !r.category.toLowerCase().contains("canh") && !r.category.toLowerCase().contains("chay"));
+
+            if (matchesQuery && matchesCategory && (q.length() > 0 || matchesInitial)) {
                 displayedRecipesList.add(r);
             }
         }
 
-        // Nếu filter ban đầu không có món nào hoặc người dùng xóa trắng tìm kiếm
-        if (displayedRecipesList.isEmpty() && !allRecipesList.isEmpty() && q.isEmpty()) {
+        // Nếu không có món nào thỏa mãn và query rỗng
+        if (displayedRecipesList.isEmpty() && !allRecipesList.isEmpty() && q.isEmpty() && selectedCategory.equals("Tất cả")) {
             displayedRecipesList.addAll(allRecipesList);
             textCurrentIngredientFilter.setText("Hiển thị tất cả món ăn trong kho công thức");
         }
