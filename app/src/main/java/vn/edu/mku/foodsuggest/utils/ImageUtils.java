@@ -1,6 +1,9 @@
 package vn.edu.mku.foodsuggest.utils;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -33,6 +36,57 @@ public class ImageUtils {
         } catch (Throwable t) {
             Log.w(TAG, "OpenCV native library not available, fallback to Java Bitmap processing.", t);
             isOpenCvLoaded = false;
+        }
+    }
+
+
+    /**
+     * Đọc ảnh từ file, tự xoay đúng chiều theo EXIF và thu nhỏ nếu quá lớn
+     * (tránh ảnh bị nằm ngang/ngược và tránh tràn bộ nhớ).
+     */
+    public static Bitmap decodeFileWithExif(String path) {
+        final int maxSide = 1600;
+        try {
+            BitmapFactory.Options bounds = new BitmapFactory.Options();
+            bounds.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(path, bounds);
+
+            int sample = 1;
+            int longest = Math.max(bounds.outWidth, bounds.outHeight);
+            while (longest / sample > maxSide) {
+                sample *= 2;
+            }
+
+            BitmapFactory.Options opts = new BitmapFactory.Options();
+            opts.inSampleSize = sample;
+            Bitmap bmp = BitmapFactory.decodeFile(path, opts);
+            if (bmp == null) return null;
+
+            int degrees = 0;
+            try {
+                ExifInterface exif = new ExifInterface(path);
+                int o = exif.getAttributeInt(
+                        ExifInterface.TAG_ORIENTATION,
+                        ExifInterface.ORIENTATION_NORMAL);
+                if (o == ExifInterface.ORIENTATION_ROTATE_90) degrees = 90;
+                else if (o == ExifInterface.ORIENTATION_ROTATE_180) degrees = 180;
+                else if (o == ExifInterface.ORIENTATION_ROTATE_270) degrees = 270;
+            } catch (Exception e) {
+                Log.w(TAG, "Không đọc được EXIF: " + e.getMessage());
+            }
+
+            if (degrees != 0) {
+                Matrix m = new Matrix();
+                m.postRotate(degrees);
+                Bitmap rotated = Bitmap.createBitmap(
+                        bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), m, true);
+                if (rotated != bmp) bmp.recycle();
+                return rotated;
+            }
+            return bmp;
+        } catch (Throwable t) {
+            Log.e(TAG, "decodeFileWithExif lỗi: ", t);
+            return null;
         }
     }
 

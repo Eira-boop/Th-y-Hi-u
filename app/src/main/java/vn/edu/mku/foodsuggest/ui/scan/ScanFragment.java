@@ -667,6 +667,7 @@ public class ScanFragment extends Fragment {
 
     /**
      * Luồng xử lý một vật thể.
+     * Luôn hiển thị được kết quả, kể cả khi một bước xử lý ảnh bị lỗi.
      */
     private void processAndSave(File photoFile) {
 
@@ -677,101 +678,119 @@ public class ScanFragment extends Fragment {
 
         executorService.execute(() -> {
 
-            Bitmap original =
-                    BitmapFactory.decodeFile(
-                            photoFile.getAbsolutePath()
-                    );
+            IngredientClassifier.ClassificationResult result = null;
+            Bitmap preview = null;
 
-            if (original == null) {
-                return;
-            }
+            try {
 
-            /*
-             * Bước 1:
-             * Tăng cường chất lượng ảnh.
-             */
-            Bitmap enhanced =
-                    ImageUtils.enhance(original);
-
-            /*
-             * Bước 2:
-             * Vẽ khung nhận diện.
-             */
-            Bitmap debugBox =
-                    ImageUtils.drawMainObjectBox(
-                            enhanced
-                    );
-
-            /*
-             * Bước 3:
-             * Cắt nguyên liệu chính.
-             */
-            Bitmap processed =
-                    ImageUtils.cropMainObject(
-                            enhanced
-                    );
-
-            /*
-             * Bước 4:
-             * Lưu ảnh processed.
-             */
-            try (
-                    FileOutputStream out =
-                            new FileOutputStream(
-                                    photoFile
-                            )
-            ) {
-
-                processed.compress(
-                        Bitmap.CompressFormat.JPEG,
-                        90,
-                        out
-                );
-
-            } catch (IOException e) {
-
-                Log.e(
-                        TAG,
-                        "Lỗi lưu ảnh processed.",
-                        e
-                );
-            }
-
-            /*
-             * Bước 5:
-             * Phân loại bằng AI.
-             */
-            IngredientClassifier.ClassificationResult result =
-                    null;
-
-            if (classifier != null) {
-
-                result =
-                        classifier.classify(
-                                processed
+                /*
+                 * Bước 0: đọc ảnh, xoay đúng chiều theo EXIF.
+                 */
+                Bitmap original =
+                        ImageUtils.decodeFileWithExif(
+                                photoFile.getAbsolutePath()
                         );
 
-                float threshold =
-                        getConfidenceThreshold();
-
-                if (result != null
-                        && result.confidence >= threshold) {
-
-                    saveScanResult(
-                            result,
-                            photoFile.getAbsolutePath()
-                    );
+                if (original == null) {
+                    Log.e(TAG, "Không đọc được ảnh vừa chụp.");
+                    return;
                 }
+
+                /*
+                 * Bước 1: tăng cường chất lượng ảnh.
+                 */
+                Bitmap enhanced = ImageUtils.enhance(original);
+                if (enhanced == null) {
+                    enhanced = original;
+                }
+
+                /*
+                 * Bước 2: vẽ khung nhận diện.
+                 */
+                Bitmap debugBox = ImageUtils.drawMainObjectBox(enhanced);
+                preview = debugBox != null ? debugBox : enhanced;
+
+                /*
+                 * Bước 3: cắt nguyên liệu chính.
+                 */
+                Bitmap processed = ImageUtils.cropMainObject(enhanced);
+                if (processed == null) {
+                    processed = enhanced;
+                }
+
+                /*
+                 * Bước 4: lưu ảnh đã xử lý.
+                 */
+                try (FileOutputStream out =
+                             new FileOutputStream(photoFile)) {
+
+                    processed.compress(
+                            Bitmap.CompressFormat.JPEG,
+                            90,
+                            out
+                    );
+
+                } catch (IOException e) {
+                    Log.e(TAG, "Lỗi lưu ảnh processed.", e);
+                }
+
+                /*
+                 * Bước 5: phân loại bằng AI.
+                 * Nếu classifier chưa khởi tạo được thì thử khởi tạo lại.
+                 */
+                ensureClassifier();
+
+                if (classifier != null) {
+
+                    result = classifier.classify(processed);
+
+                    if (result != null
+                            && result.confidence
+                            >= getConfidenceThreshold()) {
+
+                        saveScanResult(
+                                result,
+                                photoFile.getAbsolutePath()
+                        );
+                    }
+                }
+
+            } catch (Throwable t) {
+
+                Log.e(TAG, "Lỗi xử lý ảnh một vật thể.", t);
             }
 
-            /*
-             * Hiển thị kết quả.
-             */
-            showResult(
-                    debugBox,
-                    result
-            );
+            if (preview != null) {
+                showResult(preview, result);
+            }
         });
+    }
+
+    /**
+     * Khởi tạo lại IngredientClassifier nếu lần đầu bị lỗi.
+     */
+    private void ensureClassifier() {
+
+        if (classifier != null) {
+            return;
+        }
+
+        Context ctx = getContext();
+
+        if (ctx == null) {
+            return;
+        }
+
+        try {
+
+            classifier = new IngredientClassifier(ctx);
+
+        } catch (Throwable t) {
+
+            Log.e(TAG, "Khởi tạo lại IngredientClassifier thất bại.", t);
+
+            classifier = null;
+        }
     }
 
     /**
@@ -843,7 +862,7 @@ public class ScanFragment extends Fragment {
         executorService.execute(() -> {
 
             Bitmap original =
-                    BitmapFactory.decodeFile(
+                    ImageUtils.decodeFileWithExif(
                             photoFile.getAbsolutePath()
                     );
 
