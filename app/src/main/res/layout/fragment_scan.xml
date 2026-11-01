@@ -26,6 +26,22 @@
         android:textColor="@color/on_primary"
         android:textSize="13sp" />
 
+    <!-- Chọn nhóm nguyên liệu cần nhận diện: Rau củ / Hải sản -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonGroupMode"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="104dp"
+        android:backgroundTint="#80000000"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:text="Nhóm: Tự động (chạm để đổi)"
+        android:textColor="@color/white"
+        app:cornerRadius="24dp"
+        app:strokeColor="@color/white" />
+
     <!-- Bottom Controls: Single / Multi Mode and Capture -->
     <LinearLayout
         android:id="@+id/controlsLayout"

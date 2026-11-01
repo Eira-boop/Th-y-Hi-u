@@ -83,6 +83,11 @@ public class ScanFragment extends Fragment {
     private PreviewView previewView;
     private MaterialButton buttonCapture;
     private MaterialButton buttonMultiMode;
+    private MaterialButton buttonGroupMode;
+
+    private int ingredientGroup = IngredientClassifier.GROUP_AUTO;
+
+    private boolean shownLoadError = false;
     private ImageView imageResult;
     private TextView textMultiHint;
     private LinearLayout resultInfoPanel;
@@ -196,6 +201,9 @@ public class ScanFragment extends Fragment {
         buttonCapture =
                 root.findViewById(R.id.buttonCapture);
 
+        buttonGroupMode =
+                root.findViewById(R.id.buttonGroupMode);
+
         buttonMultiMode =
                 root.findViewById(R.id.buttonMultiMode);
 
@@ -304,6 +312,23 @@ public class ScanFragment extends Fragment {
      * Thiết lập sự kiện cho các nút.
      */
     private void setupListeners() {
+
+        /*
+         * Nút đổi nhóm nguyên liệu: Rau củ <-> Hải sản.
+         */
+        buttonGroupMode.setOnClickListener(v -> {
+
+            if (ingredientGroup == IngredientClassifier.GROUP_AUTO) {
+                ingredientGroup = IngredientClassifier.GROUP_VEGETABLE;
+                buttonGroupMode.setText("Nhóm: Rau củ (chạm để đổi)");
+            } else if (ingredientGroup == IngredientClassifier.GROUP_VEGETABLE) {
+                ingredientGroup = IngredientClassifier.GROUP_SEAFOOD;
+                buttonGroupMode.setText("Nhóm: Hải sản (chạm để đổi)");
+            } else {
+                ingredientGroup = IngredientClassifier.GROUP_AUTO;
+                buttonGroupMode.setText("Nhóm: Tự động (chạm để đổi)");
+            }
+        });
 
         /*
          * Nút chụp ảnh.
@@ -740,8 +765,25 @@ public class ScanFragment extends Fragment {
                  */
                 ensureClassifier();
 
+                if (classifier != null && !classifier.isReady() && !shownLoadError) {
+                    shownLoadError = true;
+                    final String why = String.valueOf(classifier.getLoadError());
+                    Log.e(TAG, "Model AI không nạp được: " + why);
+                    if (isAdded()) {
+                        requireActivity().runOnUiThread(() -> {
+                            if (!isAdded()) return;
+                            new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                                    .setTitle("Model AI không nạp được")
+                                    .setMessage("App đang đoán theo màu (không chính xác).\n\nLỗi:\n" + why)
+                                    .setPositiveButton("Đóng", null)
+                                    .show();
+                        });
+                    }
+                }
+
                 if (classifier != null) {
 
+                    classifier.setGroup(ingredientGroup);
                     result = classifier.classify(processed);
 
                     if (result != null
@@ -1213,6 +1255,10 @@ public class ScanFragment extends Fragment {
                 );
 
                 return false;
+            }
+
+            if (classifier != null) {
+                classifier.setGroup(ingredientGroup);
             }
 
             IngredientClassifier.ClassificationResult result =

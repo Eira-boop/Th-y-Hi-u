@@ -120,6 +120,86 @@ public class RecipeRecommendationEngine {
         ));
         NUTRITION_TIPS.put("Cá tươi", "Cung cấp Omega-3 EPA/DHA tự nhiên tốt cho tim mạch và phát triển trí não.");
         CATEGORY_MAP.put("Cá tươi", "Thủy hải sản");
+
+        DISH_SUGGESTIONS.put("Đậu cô ve", Arrays.asList(
+                "Đậu Cô Ve Xào Tỏi", "Đậu Cô Ve Xào Thịt Bò", "Đậu Cô Ve Luộc Chấm Muối Mè"));
+        NUTRITION_TIPS.put("Đậu cô ve", "Giàu chất xơ và vitamin K, nên xào nhanh lửa lớn để giữ màu xanh và độ giòn.");
+        CATEGORY_MAP.put("Đậu cô ve", "Rau củ");
+
+        DISH_SUGGESTIONS.put("Khổ qua", Arrays.asList(
+                "Khổ Qua Xào Trứng", "Canh Khổ Qua Nhồi Thịt", "Khổ Qua Xào Thịt Bò"));
+        NUTRITION_TIPS.put("Khổ qua", "Vị đắng giúp hỗ trợ ổn định đường huyết, ngâm nước muối loãng trước khi nấu để bớt đắng.");
+        CATEGORY_MAP.put("Khổ qua", "Rau củ");
+
+        DISH_SUGGESTIONS.put("Bầu", Arrays.asList(
+                "Canh Bầu Nấu Tôm", "Bầu Xào Trứng", "Bầu Luộc Chấm Kho Quẹt"));
+        NUTRITION_TIPS.put("Bầu", "Mát, nhiều nước và ít calo, hợp nấu canh giải nhiệt mùa nóng.");
+        CATEGORY_MAP.put("Bầu", "Rau củ");
+
+        DISH_SUGGESTIONS.put("Cà tím", Arrays.asList(
+                "Cà Tím Nướng Mỡ Hành", "Cà Tím Xào Thịt Băm", "Cà Tím Kho Tộ"));
+        NUTRITION_TIPS.put("Cà tím", "Vỏ tím chứa Anthocyanin chống oxy hóa, nên giữ vỏ khi chế biến.");
+        CATEGORY_MAP.put("Cà tím", "Rau củ");
+
+        DISH_SUGGESTIONS.put("Bông cải xanh", Arrays.asList(
+                "Bông Cải Xanh Xào Tỏi", "Súp Bông Cải Xanh", "Bông Cải Xanh Xào Thịt Bò"));
+        NUTRITION_TIPS.put("Bông cải xanh", "Giàu vitamin C và Sulforaphane, nên hấp hoặc chần nhanh để giữ dưỡng chất.");
+        CATEGORY_MAP.put("Bông cải xanh", "Rau củ");
+
+        DISH_SUGGESTIONS.put("Súp lơ trắng", Arrays.asList(
+                "Súp Lơ Xào Tỏi", "Súp Lơ Xào Thịt Bò", "Canh Súp Lơ Hầm Xương"));
+        NUTRITION_TIPS.put("Súp lơ trắng", "Ít tinh bột, giàu vitamin C và chất xơ, hợp chế độ ăn giảm cân.");
+        CATEGORY_MAP.put("Súp lơ trắng", "Rau củ");
+
+        DISH_SUGGESTIONS.put("Dưa leo", Arrays.asList(
+                "Gỏi Dưa Leo Tôm Thịt", "Dưa Leo Muối Chua", "Canh Dưa Leo Nhồi Thịt"));
+        NUTRITION_TIPS.put("Dưa leo", "Chứa hơn 90% nước, giải nhiệt tốt, nên ăn cả vỏ đã rửa sạch.");
+        CATEGORY_MAP.put("Dưa leo", "Rau củ");
+
+        DISH_SUGGESTIONS.put("Đu đủ", Arrays.asList(
+                "Gỏi Đu Đủ Khô Bò", "Canh Đu Đủ Hầm Xương", "Đu Đủ Xào Tôm"));
+        NUTRITION_TIPS.put("Đu đủ", "Chứa enzyme Papain hỗ trợ tiêu hóa, đu đủ xanh thường dùng làm gỏi và nấu canh.");
+        CATEGORY_MAP.put("Đu đủ", "Trái cây / Rau củ");
+
+        DISH_SUGGESTIONS.put("Bí đỏ", Arrays.asList(
+                "Canh Bí Đỏ Nấu Tôm", "Bí Đỏ Xào Tỏi", "Súp Bí Đỏ"));
+        NUTRITION_TIPS.put("Bí đỏ", "Giàu Beta-carotene tốt cho mắt, nấu chín mềm để dễ hấp thu.");
+        CATEGORY_MAP.put("Bí đỏ", "Rau củ");
+
+        DISH_SUGGESTIONS.put("Củ cải", Arrays.asList(
+                "Canh Củ Cải Hầm Xương", "Củ Cải Kho Thịt", "Củ Cải Muối Chua"));
+        NUTRITION_TIPS.put("Củ cải", "Hỗ trợ tiêu hóa, nên nấu chín kỹ để bớt hăng.");
+        CATEGORY_MAP.put("Củ cải", "Rau củ");
+
+        DISH_SUGGESTIONS.put("Cua", Arrays.asList(
+                "Cua Hấp Bia", "Canh Cua Rau Đay", "Cua Rang Muối"));
+        NUTRITION_TIPS.put("Cua", "Giàu đạm, canxi và kẽm, cần nấu chín kỹ, người dị ứng hải sản nên thận trọng.");
+        CATEGORY_MAP.put("Cua", "Hải sản");
+
+        DISH_SUGGESTIONS.put("Mực", Arrays.asList(
+                "Mực Xào Sa Tế", "Mực Hấp Gừng", "Mực Nhồi Thịt Hấp"));
+        NUTRITION_TIPS.put("Mực", "Giàu đạm và Taurine, không nên nấu quá lâu vì mực sẽ dai.");
+        CATEGORY_MAP.put("Mực", "Hải sản");
+
+        DISH_SUGGESTIONS.put("Bạch tuộc", Arrays.asList(
+                "Bạch Tuộc Nướng Sa Tế", "Bạch Tuộc Xào Rau Muống", "Lẩu Bạch Tuộc"));
+        NUTRITION_TIPS.put("Bạch tuộc", "Ít béo, nhiều đạm, chần sơ qua nước sôi trước khi chế biến để giòn.");
+        CATEGORY_MAP.put("Bạch tuộc", "Hải sản");
+
+        DISH_SUGGESTIONS.put("Nghêu", Arrays.asList(
+                "Nghêu Hấp Sả", "Canh Nghêu Nấu Rau Muống", "Nghêu Xào Tỏi"));
+        NUTRITION_TIPS.put("Nghêu", "Ngâm nước muối loãng 1–2 giờ cho nhả sạch cát trước khi nấu.");
+        CATEGORY_MAP.put("Nghêu", "Hải sản");
+
+        DISH_SUGGESTIONS.put("Lươn", Arrays.asList(
+                "Lươn Xào Sả Ớt", "Cháo Lươn", "Lươn Um Chuối Đậu"));
+        NUTRITION_TIPS.put("Lươn", "Giàu đạm và vitamin A, cần làm sạch nhớt kỹ bằng muối và nước nóng.");
+        CATEGORY_MAP.put("Lươn", "Hải sản");
+
+        DISH_SUGGESTIONS.put("Tôm hùm", Arrays.asList(
+                "Tôm Hùm Hấp Bia", "Tôm Hùm Nướng Phô Mai", "Cháo Tôm Hùm"));
+        NUTRITION_TIPS.put("Tôm hùm", "Thịt giàu đạm, ít béo, hấp hoặc nướng để giữ vị ngọt tự nhiên.");
+        CATEGORY_MAP.put("Tôm hùm", "Hải sản");
     }
 
     public static List<String> getSuggestedDishes(String ingredient) {

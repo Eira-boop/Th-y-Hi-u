@@ -59,7 +59,9 @@ dependencies {
     implementation("com.squareup.picasso:picasso:2.8")
 
     // TensorFlow Lite (Chương 4 & Chương 5)
-    implementation("org.tensorflow:tensorflow-lite:2.14.0")
+    // Model mới cần FULLY_CONNECTED v12 -> TFLite 2.14/2.16 quá cũ, dùng LiteRT (tên mới của TFLite).
+    // LiteRT vẫn giữ nguyên package org.tensorflow.lite nên không phải sửa code Java.
+    implementation("com.google.ai.edge.litert:litert:1.0.1")
     implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
     implementation("org.tensorflow:tensorflow-lite-task-vision:0.4.4")
 
@@ -67,4 +69,11 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+}
+
+// Loại bỏ TFLite cũ do tensorflow-lite-support / task-vision kéo theo,
+// để chỉ còn LiteRT (tránh trùng lớp và tránh dùng nhầm runtime cũ).
+configurations.all {
+    exclude(group = "org.tensorflow", module = "tensorflow-lite")
+    exclude(group = "org.tensorflow", module = "tensorflow-lite-api")
 }
