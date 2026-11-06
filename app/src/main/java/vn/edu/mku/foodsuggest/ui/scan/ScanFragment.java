@@ -85,7 +85,7 @@ public class ScanFragment extends Fragment {
     private MaterialButton buttonMultiMode;
     private MaterialButton buttonGroupMode;
 
-    private int ingredientGroup = IngredientClassifier.GROUP_AUTO;
+    private int ingredientGroup = IngredientClassifier.GROUP_VEGETABLE;
 
     private boolean shownLoadError = false;
     private ImageView imageResult;
@@ -695,110 +695,60 @@ public class ScanFragment extends Fragment {
      * Luôn hiển thị được kết quả, kể cả khi một bước xử lý ảnh bị lỗi.
      */
     private void processAndSave(File photoFile) {
-
-        if (executorService == null
-                || executorService.isShutdown()) {
+        if (executorService == null || executorService.isShutdown()) {
             return;
         }
 
         executorService.execute(() -> {
-
             IngredientClassifier.ClassificationResult result = null;
             Bitmap preview = null;
 
             try {
-
-                /*
-                 * Bước 0: đọc ảnh, xoay đúng chiều theo EXIF.
-                 */
-                Bitmap original =
-                        ImageUtils.decodeFileWithExif(
-                                photoFile.getAbsolutePath()
-                        );
-
+                // Bước 0: đọc ảnh, xoay đúng chiều theo EXIF (Giữ nguyên)
+                Bitmap original = ImageUtils.decodeFileWithExif(photoFile.getAbsolutePath());
                 if (original == null) {
                     Log.e(TAG, "Không đọc được ảnh vừa chụp.");
                     return;
                 }
 
+                // =======================================================
+                // TẠM THỜI COMMENT CÁC BƯỚC OPENCV ĐỂ TEST
+                // =======================================================
                 /*
-                 * Bước 1: tăng cường chất lượng ảnh.
-                 */
                 Bitmap enhanced = ImageUtils.enhance(original);
-                if (enhanced == null) {
-                    enhanced = original;
-                }
+                if (enhanced == null) enhanced = original;
 
-                /*
-                 * Bước 2: vẽ khung nhận diện.
-                 */
                 Bitmap debugBox = ImageUtils.drawMainObjectBox(enhanced);
                 preview = debugBox != null ? debugBox : enhanced;
 
-                /*
-                 * Bước 3: cắt nguyên liệu chính.
-                 */
                 Bitmap processed = ImageUtils.cropMainObject(enhanced);
-                if (processed == null) {
-                    processed = enhanced;
-                }
+                if (processed == null) processed = enhanced;
+                */
 
-                /*
-                 * Bước 4: lưu ảnh đã xử lý.
-                 */
-                try (FileOutputStream out =
-                             new FileOutputStream(photoFile)) {
+                // Chỉ dùng ảnh gốc (đã fix xoay) đưa thẳng vào AI
+                Bitmap processed = original;
+                preview = original;
 
-                    processed.compress(
-                            Bitmap.CompressFormat.JPEG,
-                            90,
-                            out
-                    );
-
-                } catch (IOException e) {
-                    Log.e(TAG, "Lỗi lưu ảnh processed.", e);
-                }
-
-                /*
-                 * Bước 5: phân loại bằng AI.
-                 * Nếu classifier chưa khởi tạo được thì thử khởi tạo lại.
-                 */
+                // Bước 5: phân loại bằng AI
                 ensureClassifier();
 
-                if (classifier != null && !classifier.isReady() && !shownLoadError) {
-                    shownLoadError = true;
-                    final String why = String.valueOf(classifier.getLoadError());
-                    Log.e(TAG, "Model AI không nạp được: " + why);
-                    if (isAdded()) {
-                        requireActivity().runOnUiThread(() -> {
-                            if (!isAdded()) return;
-                            new androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                                    .setTitle("Model AI không nạp được")
-                                    .setMessage("App đang đoán theo màu (không chính xác).\n\nLỗi:\n" + why)
-                                    .setPositiveButton("Đóng", null)
-                                    .show();
-                        });
-                    }
-                }
-
                 if (classifier != null) {
+                    // Tạm bỏ qua setGroup vì model mới không cần chia nhóm
+                    // classifier.setGroup(ingredientGroup);
 
-                    classifier.setGroup(ingredientGroup);
                     result = classifier.classify(processed);
 
-                    if (result != null
-                            && result.confidence
-                            >= getConfidenceThreshold()) {
+                    // In log để kiểm tra độ tin cậy
+                    if (result != null) {
+                        Log.d(TAG, "KẾT QUẢ AI: " + result.label + " - Tự tin: " + (result.confidence * 100) + "%");
+                    }
 
-                        saveScanResult(
-                                result,
-                                photoFile.getAbsolutePath()
-                        );
+                    if (result != null && result.confidence >= getConfidenceThreshold()) {
+                        saveScanResult(result, photoFile.getAbsolutePath());
                     }
                 }
 
             } catch (Throwable t) {
-
                 Log.e(TAG, "Lỗi xử lý ảnh một vật thể.", t);
             }
 
