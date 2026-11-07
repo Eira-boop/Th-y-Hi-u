@@ -30,7 +30,7 @@ public class IngredientClassifier {
     private static final String TAG = "IngredientClassifier";
     private static final int INPUT_SIZE = 224;
 
-    // Các hằng số tương thích ngược
+    // Các hằng số nhóm
     public static final int GROUP_VEGETABLE = 0;
     public static final int GROUP_SEAFOOD = 1;
     public static final int GROUP_AUTO = 2;
@@ -55,6 +55,7 @@ public class IngredientClassifier {
     private static final Map<String, String> VI_NAMES = new HashMap<>();
 
     static {
+        // ================= 29 LỚP CƠ BẢN =================
         VI_NAMES.put("beef_mince", "Thịt bò xay");
         VI_NAMES.put("chicken_breast", "Ức gà");
         VI_NAMES.put("chicken_thighs", "Đùi gà");
@@ -90,6 +91,16 @@ public class IngredientClassifier {
         VI_NAMES.put("egg", "Trứng");
         VI_NAMES.put("iceCream", "Kem");
         VI_NAMES.put("yogurt", "Sữa chua");
+
+        // ================= HẢI SẢN CŨ =================
+        VI_NAMES.put("Clams", "Nghêu");
+        VI_NAMES.put("Crabs", "Cua");
+        VI_NAMES.put("Eel", "Lươn");
+        VI_NAMES.put("Lobster", "Tôm hùm");
+        VI_NAMES.put("Octopus", "Bạch tuộc");
+        VI_NAMES.put("Shrimp", "Tôm");
+        VI_NAMES.put("Squid", "Mực");
+        VI_NAMES.put("Fish", "Cá");
     }
 
     private final List<SubModel> models = new ArrayList<>();
@@ -112,7 +123,10 @@ public class IngredientClassifier {
     }
 
     public IngredientClassifier(Context context) throws IOException {
+        // Load model 29 lớp cũ
         loadSubModel(context, "Tất cả nguyên liệu", "ingredient_classifier.tflite", "labels.txt");
+        // Load model hải sản cũ
+        loadSubModel(context, "Hải sản", "ingredient_seafood.tflite", "seafood_labels.txt");
         Log.d(TAG, "Đã nạp " + models.size() + " model AI.");
     }
 
@@ -125,25 +139,16 @@ public class IngredientClassifier {
             Log.d(TAG, "Nạp thành công " + modelFile + " (" + labels.size() + " nhãn)");
         } catch (Throwable e) {
             Log.e(TAG, "Không nạp được " + modelFile + ": " + e.getMessage(), e);
-            Throwable root = e;
-            while (root.getCause() != null && root.getCause() != root) {
-                root = root.getCause();
-            }
-            String msg = modelFile + " -> " + e.getClass().getName() + ": " + e.getMessage()
-                    + (root != e ? "\n(gốc: " + root.getClass().getName() + ": " + root.getMessage() + ")" : "");
-            if (loadError == null) {
-                String ver;
-                try {
-                    ver = TensorFlowLite.runtimeVersion();
-                } catch (Throwable t) {
-                    ver = "không rõ";
-                }
-                loadError = "Phiên bản TFLite đang chạy trong app: " + ver
-                        + " (cần LiteRT >= 1.0.1)\n\n" + msg;
-            } else {
-                loadError = loadError + "\n\n" + msg;
-            }
+            if (loadError == null) loadError = modelFile + ": " + e.getMessage();
+            else loadError += "\n" + modelFile + ": " + e.getMessage();
         }
+    }
+
+    private SubModel findModel(String name) {
+        for (SubModel m : models) {
+            if (m.name.equals(name)) return m;
+        }
+        return null;
     }
 
     public ClassificationResult classify(Bitmap bitmap) {
@@ -151,21 +156,37 @@ public class IngredientClassifier {
             return null;
         }
 
-        SubModel mainModel = models.get(0);
+        // 1. Xác định xem sẽ dùng model nào
+        SubModel targetModel = null;
+        if (group == GROUP_SEAFOOD) {
+            targetModel = findModel("Hải sản");
+            if (targetModel == null) {
+                Log.e(TAG, "Model hải sản lỗi, tự động chuyển về model 29 lớp.");
+            }
+        }
+
+        // Mặc định dùng model 29 lớp nếu không phải chế độ Hải sản hoặc model Hải sản bị lỗi
+        if (targetModel == null) {
+            targetModel = findModel("Tất cả nguyên liệu");
+        }
+
+        if (targetModel == null) return null;
+
         try {
-            int numClasses = mainModel.labels.size();
+            int numClasses = targetModel.labels.size();
             float[] avgProbs = new float[numClasses];
 
-            // Quét 3 vùng (Trái, Giữa, Phải) để chống lừa bởi nền xung quanh
+            // KỸ THUẬT TTA: Quét 3 vùng (Trái, Giữa, Phải) để tránh bị lừa bởi nền
             Bitmap leftCrop = getCropBitmap(bitmap, -1);
-            runSingleInterpreter(leftCrop, mainModel, avgProbs);
+            runSingleInterpreter(leftCrop, targetModel, avgProbs);
 
             Bitmap centerCrop = getCropBitmap(bitmap, 0);
-            runSingleInterpreter(centerCrop, mainModel, avgProbs);
+            runSingleInterpreter(centerCrop, targetModel, avgProbs);
 
             Bitmap rightCrop = getCropBitmap(bitmap, 1);
-            runSingleInterpreter(rightCrop, mainModel, avgProbs);
+            runSingleInterpreter(rightCrop, targetModel, avgProbs);
 
+            // Trung bình cộng xác suất
             for (int i = 0; i < numClasses; i++) {
                 avgProbs[i] /= 3.0f;
             }
@@ -188,28 +209,25 @@ public class IngredientClassifier {
 
             // LOG TOP 3 ĐỂ DEBUG
             for (int i = 0; i < 3; i++) {
-                Log.d(TAG, "TOP " + (i+1) + ": " + mainModel.labels.get(topIndices[i]) + " = " + String.format(Locale.US, "%.1f%%", topProbs[i] * 100));
+                Log.d(TAG, "TOP " + (i+1) + " (" + targetModel.name + "): " + targetModel.labels.get(topIndices[i]) + " = " + String.format(Locale.US, "%.1f%%", topProbs[i] * 100));
             }
 
-            // =================================================================
-            // TUYỆT CHIÊU: CHỐNG "ẢO GIÁC" CHO APP NẤU ĂN
-            // Nếu Top 1 là các món không phải nguyên liệu (kem, đồ uống, sữa...)
-            // Ta sẽ tự động nhảy sang Top 2 hoặc Top 3.
-            // =================================================================
             int finalBestIdx = topIndices[0];
             float finalConf = topProbs[0];
 
-            String top1Raw = mainModel.labels.get(topIndices[0]);
-            if (top1Raw.equals("iceCream") || top1Raw.equals("beverage") || top1Raw.equals("dairy") || top1Raw.equals("yogurt")) {
-                // Nếu Top 1 là đồ không mong muốn, và Top 2 có độ tin cậy > 15%, ta lấy Top 2
-                if (topProbs[1] > 0.15f) {
-                    finalBestIdx = topIndices[1];
-                    finalConf = topProbs[1];
-                    Log.d(TAG, "Đã chặn Top 1 (" + top1Raw + "), chuyển sang Top 2: " + mainModel.labels.get(finalBestIdx));
+            // TUYỆT CHIÊU CHỐNG ẢO GIÁC (Chỉ áp dụng cho model 29 lớp)
+            if (targetModel.name.equals("Tất cả nguyên liệu")) {
+                String top1Raw = targetModel.labels.get(topIndices[0]);
+                if (top1Raw.equals("iceCream") || top1Raw.equals("beverage") || top1Raw.equals("dairy") || top1Raw.equals("yogurt")) {
+                    if (topProbs[1] > 0.15f) {
+                        finalBestIdx = topIndices[1];
+                        finalConf = topProbs[1];
+                        Log.d(TAG, "Đã chặn Top 1 (" + top1Raw + "), chuyển sang Top 2: " + targetModel.labels.get(finalBestIdx));
+                    }
                 }
             }
 
-            String raw = mainModel.labels.get(finalBestIdx);
+            String raw = targetModel.labels.get(finalBestIdx);
             String vi = VI_NAMES.get(raw);
 
             ClassificationResult result = new ClassificationResult();
@@ -257,25 +275,12 @@ public class IngredientClassifier {
         return resized;
     }
 
-    private void logTop3(float[] probs, List<String> labels) {
-        boolean[] used = new boolean[probs.length];
-        for (int rank = 1; rank <= 3; rank++) {
-            int idx = -1;
-            for (int i = 0; i < probs.length; i++) {
-                if (!used[i] && (idx == -1 || probs[i] > probs[idx])) idx = i;
-            }
-            used[idx] = true;
-            Log.d(TAG, "TOP " + rank + ": " + labels.get(idx) + " = " + String.format(Locale.US, "%.1f%%", probs[idx] * 100));
-        }
-    }
-
     private void enrichResult(ClassificationResult result) {
         result.category = RecipeRecommendationEngine.getCategory(result.label);
         result.suggestedDishes = RecipeRecommendationEngine.getSuggestedDishes(result.label);
         result.specialGuidance = RecipeRecommendationEngine.getNutritionTip(result.label);
     }
 
-    // Hàm preprocess giờ chỉ làm nhiệm vụ chuẩn hóa (vì ảnh đã được crop vuông từ trước)
     private ByteBuffer preprocess(Bitmap resized) {
         ByteBuffer buffer = ByteBuffer.allocateDirect(4 * INPUT_SIZE * INPUT_SIZE * 3);
         buffer.order(ByteOrder.nativeOrder());

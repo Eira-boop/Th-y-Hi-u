@@ -32,7 +32,7 @@ public class IngredientDetector {
             ObjectDetector.ObjectDetectorOptions options =
                     ObjectDetector.ObjectDetectorOptions.builder()
                             .setMaxResults(10)          // Tối đa 10 vật thể
-                            .setScoreThreshold(0.35f)   // Hạ ngưỡng xuống 35% để bắt được nhiều vật thể hơn
+                            .setScoreThreshold(0.15f)   // Hạ ngưỡng xuống 35% để bắt được nhiều vật thể hơn
                             .build();
 
             // ĐỔI TÊN MODEL TẠI ĐÂY (Khớp với file bạn tải từ Colab)
