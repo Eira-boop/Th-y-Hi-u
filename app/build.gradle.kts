@@ -1,5 +1,14 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
+}
+
+// Đọc file local.properties để lấy API Key
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
 }
 
 android {
@@ -15,6 +24,9 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
+        // Lấy key từ localProperties, nếu không có thì dùng "MISSING_KEY"
+        val apiKey = localProperties.getProperty("GEMINI_API_KEY") ?: "MISSING_KEY"
+        buildConfigField("String", "GEMINI_API_KEY", "\"$apiKey\"")
     }
 
     buildTypes {
@@ -68,9 +80,7 @@ dependencies {
     implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
     implementation("org.tensorflow:tensorflow-lite-task-vision:0.4.4")
 
-    // ==========================================
-    // THAY THẾ THƯ VIỆN GEMINI CŨ BẰNG RETROFIT
-    // ==========================================
+    // Thư viện gọi API (Retrofit)
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
 

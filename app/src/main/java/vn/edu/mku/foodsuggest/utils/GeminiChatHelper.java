@@ -15,10 +15,6 @@ import retrofit2.http.Query;
 
 public class GeminiChatHelper {
     private static final String BASE_URL = "https://generativelanguage.googleapis.com/";
-
-    // DÁN TRỰC TIẾP API KEY CỦA BẠN VÀO ĐÂY (Giữ nguyên dấu ngoặc kép)
-    private static final String API_KEY = "REDACTED";
-
     private final GeminiApiService apiService;
 
     public GeminiChatHelper() {
@@ -44,8 +40,8 @@ public class GeminiChatHelper {
 
         CompletableFuture<String> future = new CompletableFuture<>();
 
-        // Gọi API
-        apiService.generateContent("gemini-3.1-flash-lite", API_KEY, request)
+        // Sử dụng GeminiConfig.API_KEY thay vì BuildConfig
+        apiService.generateContent("gemini-2.0-flash", GeminiConfig.API_KEY, request)
                 .enqueue(new Callback<GeminiResponse>() {
                     @Override
                     public void onResponse(Call<GeminiResponse> call, Response<GeminiResponse> response) {
