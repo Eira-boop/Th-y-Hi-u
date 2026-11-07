@@ -1,8 +1,6 @@
 package vn.edu.mku.foodsuggest.ui.ai;
 
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,13 +21,13 @@ import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
 
 import vn.edu.mku.foodsuggest.R;
 import vn.edu.mku.foodsuggest.data.AppDatabase;
 import vn.edu.mku.foodsuggest.data.Recipe;
+import vn.edu.mku.foodsuggest.utils.GeminiChatHelper;
 import vn.edu.mku.foodsuggest.utils.RecipeRecommendationEngine;
 
 /**
@@ -55,6 +54,9 @@ public class AiFragment extends Fragment {
 
     private final List<Recipe> cachedRecipes = new ArrayList<>();
 
+    // Khai báo trợ lý AI
+    private GeminiChatHelper chatHelper;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -66,6 +68,9 @@ public class AiFragment extends Fragment {
         setupMenuGenerator();
         setupChatbot();
         loadRecipesForEngine();
+
+        // Khởi tạo Gemini AI
+        chatHelper = new GeminiChatHelper();
 
         return root;
     }
@@ -150,7 +155,6 @@ public class AiFragment extends Fragment {
             }
         }
 
-        // Đảm bảo có gợi ý phong phú
         if (mainDishes.isEmpty()) mainDishes.add("Trứng Chiên Cà Chua / Thịt Rang Cháy Cạnh");
         if (soups.isEmpty()) soups.add("Canh Cà Chua Trứng Thanh Nhiệt");
         if (stirFries.isEmpty()) stirFries.add("Rau Muống Xào Tỏi Giòn Ngon");
@@ -164,7 +168,6 @@ public class AiFragment extends Fragment {
 
         textMenuContent.setText(sb.toString());
 
-        // Lời khuyên dinh dưỡng tổng hợp
         StringBuilder advice = new StringBuilder("💡 Đánh giá của AI Chef: Mâm cơm cân bằng hoàn hảo giữa protein ");
         if (ingredients.contains("Thịt bò") || ingredients.contains("Thịt gà") || ingredients.contains("Trứng gà") || ingredients.contains("Tôm tươi")) {
             advice.append("từ thịt/trứng/hải sản ");
@@ -176,8 +179,6 @@ public class AiFragment extends Fragment {
     }
 
     private void setupChatbot() {
-        // Quick prompts
-        View chipPromptDiet = getView() != null ? getView().findViewById(R.id.chipPromptDiet) : null;
         setupPromptClicks();
 
         btnSendMessage.setOnClickListener(v -> {
@@ -218,15 +219,38 @@ public class AiFragment extends Fragment {
         setupPromptClicks();
     }
 
+    // =========================================================
+    // PHẦN THAY ĐỔI LỚN NHẤT: GỌI API GEMINI THAY VÌ HÀM CỨNG
+    // =========================================================
     private void handleUserQuestion(String question) {
+        // 1. Hiển thị câu hỏi của người dùng
         addUserMessage(question);
 
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            if (isAdded()) {
-                String reply = answerQuestion(question);
-                addBotMessage(reply);
+        // 2. Hiển thị trạng thái đang chờ
+        LinearLayout loadingRow = addBotMessage("🤖 AI Bếp Trưởng đang suy nghĩ...");
+        scrollToBottom();
+
+        // 3. Gọi API Gemini
+        chatHelper.getRecipeSuggestion(question).thenAccept(response -> {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    // Xóa dòng chờ
+                    layoutChatMessages.removeView(loadingRow);
+                    // Hiển thị câu trả lời thật từ AI
+                    addBotMessage(response);
+                    scrollToBottom();
+                });
             }
-        }, 500);
+        }).exceptionally(throwable -> {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    layoutChatMessages.removeView(loadingRow);
+                    addBotMessage("❌ Lỗi kết nối AI: " + throwable.getMessage() + "\nVui lòng kiểm tra lại mạng hoặc API Key.");
+                    scrollToBottom();
+                });
+            }
+            return null;
+        });
     }
 
     private void addUserMessage(String message) {
@@ -255,9 +279,11 @@ public class AiFragment extends Fragment {
 
         row.addView(tv);
         layoutChatMessages.addView(row);
+        scrollToBottom();
     }
 
-    private void addBotMessage(String message) {
+    // Sửa hàm này để trả về LinearLayout (giúp xóa dòng chờ dễ dàng)
+    private LinearLayout addBotMessage(String message) {
         LinearLayout row = new LinearLayout(requireContext());
         row.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -292,39 +318,15 @@ public class AiFragment extends Fragment {
         row.addView(botIcon);
         row.addView(tv);
         layoutChatMessages.addView(row);
+
+        return row; // Trả về để xóa nếu cần
     }
 
-    private String answerQuestion(String q) {
-        String query = q.toLowerCase();
-
-        if (query.contains("giảm cân") || query.contains("diet") || query.contains("calo")) {
-            return "🥗 Gợi ý thực đơn giảm cân của AI Chef:\n" +
-                    "• Bữa trưa: Ức gà áp chảo (150g) + Nấm rơm xào dầu oliu + Bắp cải luộc chấm trứng.\n" +
-                    "• Bữa tối: Canh cà chua đậu phụ thanh đạm + Đĩa rau muống chần.\n" +
-                    "💡 Mẹo calo: Tổng năng lượng ~420 kcal, giàu đạm và chất xơ no lâu, hạn chế tích mỡ!";
-        } else if (query.contains("thịt bò") || query.contains("bò mềm") || query.contains("dai")) {
-            return "🥩 Bí quyết xào thịt bò mềm ngọt chuẩn nhà hàng:\n" +
-                    "1. Luôn thái thịt ngang thớ bản mỏng.\n" +
-                    "2. Ướp cùng 1 thìa dầu ăn, tỏi băm và một chút bột bắp (tinh bột giúp giữ nước ngọt bên trong thịt).\n" +
-                    "3. Đun chảo thật nóng, xào lửa lớn trong 90 giây đến khi bò vừa chín tới thì trút ra ngay, không để lâu trên chảo!";
-        } else if (query.contains("trứng") && query.contains("cà chua")) {
-            return "🍅 Trứng & Cà chua là cặp đôi vàng trong ẩm thực:\n" +
-                    "1. Canh Cà Chua Trứng (15 phút, 160 kcal): Khuấy tạo xoáy nước rồi rót trứng từ từ để có vân hoa bồng bềnh đẹp mắt.\n" +
-                    "2. Trứng Chiên Cà Chua (10 phút): Đậm đà, béo ngậy, giàu Lycopene và Choline rất tốt cho mắt và não bộ.";
-        } else if (query.contains("rau") || query.contains("xanh") || query.contains("luộc")) {
-            return "🥬 Mẹo luộc rau xanh mướt giòn ngọt:\n" +
-                    "• Đun nước thật sôi bùng rồi mới cho rau vào, thêm 1/2 thìa cà phê muối.\n" +
-                    "• Không đậy nắp vung để axit hữu cơ trong rau bay hơi (tránh vàng ố lá).\n" +
-                    "• Vớt ngay ra âu nước đá lạnh 2 phút để hãm nhiệt, giữ màu xanh diệp lục tươi rói!";
-        } else if (query.contains("chay") || query.contains("đậu phụ")) {
-            return "🌿 Thực đơn thuần chay dinh dưỡng:\n" +
-                    "• Đậu phụ sốt cà chua ngò rí\n" +
-                    "• Canh rong biển nấm rơm đậu phụ\n" +
-                    "• Cà rốt xào nấm & bắp cải thanh nhiệt\n" +
-                    "Cung cấp đủ axit amin thiết yếu mà không cần thịt cá!";
-        } else {
-            return "👨‍🍳 Bếp Trưởng AI xin chia sẻ:\n" +
-                    "Với câu hỏi của bạn: \"" + q + "\", nguyên tắc ẩm thực quan trọng nhất là chọn nguyên liệu tươi mới, nêm gia vị theo thứ tự (mặn -> ngọt -> thơm), và điều chỉnh nhiệt độ lửa chuẩn xác. Bạn có thể chọn tab 'Danh sách' để xem chi tiết từng công thức nấu ăn nhé!";
+    // Hàm cuộn xuống dưới cùng (Nếu layoutChatMessages nằm trong ScrollView)
+    private void scrollToBottom() {
+        if (layoutChatMessages.getParent() instanceof ScrollView) {
+            ScrollView scrollView = (ScrollView) layoutChatMessages.getParent();
+            scrollView.post(() -> scrollView.fullScroll(View.FOCUS_DOWN));
         }
     }
 }
